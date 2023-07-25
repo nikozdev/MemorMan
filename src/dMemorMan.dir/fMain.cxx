@@ -1,18 +1,12 @@
 #ifndef dMemorManMainCxx
 #define dMemorManMainCxx
-#include <dMemorMan.dir/fMain.hxx>
+#include <dMemorMan.dir/fHead.hxx>
 //content
 #ifdef dMemorManMakeExe
 //actions
-int main(int vArgC, char *vArgV[])
+int main(int vArgC, const char **vArgV)
 {
-#ifdef dMemorManTestExe
-	if constexpr(1)
-	{
-		std::cout << "hello test" << std::endl;
-	}
-#endif//dMemorManTestExe
-	return nMemorMan::fMain(vArgC, vArgV);
+	return nMemorMan::nMain::fMain(vArgC, vArgV);
 }//main
 #endif//dMemorManMakeExe
 #endif//dMemorManMainCxx

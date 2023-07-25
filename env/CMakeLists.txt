@@ -1,101 +1,156 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.3...3.8)
+include_guard(GLOBAL)
 # mods
 include(dCmake.dir/dHelp.dir/fRegex.cmake)
 include(dCmake.dir/dHelp.dir/fOpt.cmake)
-# proj
-project(MemorMan
-    VERSION 0.0.0
-    DESCRIPTION
-    "memory manager library"
+# name
+set(vProjNameOri "MemorMan")
+set(vProjNameLib "l${vProjNameOri}")
+set(vProjNameExe "e${vProjNameOri}")
+set(vProjNameDef "d${vProjNameOri}")
+set(vProjNameDir "d${vProjNameOri}.dir")
+set(vProjNameDst "p${vProjNameOri}")
+# vnum
+set(vProjVnumMajor 0)
+set(vProjVnumMinor 0)
+set(vProjVnumMicro 0)
+set(vProjVnumWhole "${vProjVnumMajor}.${vProjVnumMinor}.${vProjVnumMicro}")
+set(vProjVnumNamed
+    "${vProjNameOri}-${vProjVnumMajor}-${vProjVnumMinor}-${vProjVnumMicro}"
+    ) # vProjVnumNamed
+# desc
+set(vProjDesc "nikodim-zimin-developer template repo")
+project(${vProjNameDst}
+    VERSION ${vProjVnumWhole}
+    DESCRIPTION ${vProjDesc}
     ) # project
-enable_language(CXX)
-set(vProjName ${PROJECT_NAME})
-set(vProjNameLib "l${vProjName}") # header-only-library target
-set(vProjNameExe "e${vProjName}") # executable target
-set(vProjVnum ${PROJECT_VERSION})
-set(vProjDesc ${PROJECT_DESCRIPTION})
 # lang
+enable_language(CXX)
 set(vLangVnum 23)
 set(CMAKE_CXX_STANDARD ${vLangVnum})
-set(CMAKE_CXX_STANDARD_REQUIRED ${vLangVnum})
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 # file
-set(vFdirLoc ${PROJECT_SOURCE_DIR}/..)
-set(vFdirSrcRoot ${vFdirLoc}/src)
-set(vFdirSrcBase ${vFdirSrcRoot}/d${vProjName}.dir)
-set(vFdirGen ${vFdirLoc}/gen)
-set(RUNTIME_OUTPUT_DIRECTORY ${vFdirGen}/dExe.dir)
-set(LIBRARY_OUTPUT_DIRECTORY ${vFdirGen}/dLib.dir)
-set(ARCHIVE_OUTPUT_DIRECTORY ${vFdirGen}/dLib.dir)
-# make
-set(oProjConf "Work")
-set(vProjContList "Work;Play")
-fOptEnum(oProjConf vProjConfList "project configuration")
-if(NOT oProjConf)
+set(vFdirLocRoot "${PROJECT_SOURCE_DIR}/..")
+set(vFdirSrcRoot "${vFdirLocRoot}/src")
+set(vFdirSrcBase "${vFdirSrcRoot}/${vProjNameDir}")
+set(vFdirGenRoot "${vFdirLocRoot}/gen")
+set(vFdirEnvRoot "${vFdirLocRoot}/env")
+set(vFdirDocRoot "${vFdirLocRoot}/doc")
+set(vFdirDstRoot "$ENV{HOME}$ENV{USERPROFILE}/.local")
+set(vFdirDstBins "${vFdirDstRoot}/bin")
+set(vFdirDstLibs "${vFdirDstRoot}/lib")
+set(vFdirDstHead "${vFdirDstRoot}/include")
+set(vFdirDstProj "${vFdirDstLibs}/cmake/p${vProjVnumNamed}.dir")
+set(CMAKE_PREFIX_PATH "${vFdirDstRoot}" CACHE PATH "destination prefix" FORCE)
+set(CMAKE_INSTALL_PREFIX "${vFdirDstRoot}" CACHE PATH "install prefix" FORCE)
+#conf
+set(oProjConfPick "Work")
+set(vProjConfList "Work;Play;Dist;")
+set(vProjConfDesc "controlled by oProjConfPick")
+fOptEnum(oProjConfPick vProjConfList "project configuration")
+if(oProjConfPick STREQUAL "")
     message("project configuration is not defined")
-elseif(oProjConf STREQUAL "Play")
-    set(CMAKE_BUILD_TYPE Release)
-elseif(oProjConf STREQUAL "Work")
-    set(CMAKE_BUILD_TYPE Debug)
+elseif(oProjConfPick STREQUAL "Work")
+    set(CMAKE_BUILD_TYPE Debug CACHE STRING ${vProjConfDesc} FORCE)
+elseif(oProjConfPick STREQUAL "Play")
+    set(CMAKE_BUILD_TYPE RelWithDebInfo CACHE STRING ${vProjConfDesc} FORCE)
+elseif(oProjConfPick STREQUAL "Dist")
+    set(CMAKE_BUILD_TYPE Release CACHE STRING ${vProjConfDesc} FORCE)
 else()
     message("project configuration is not handled")
-endif(NOT oProjConf) # oProjConf
+endif(oProjConfPick STREQUAL "")
+fOptEnum(CMAKE_BUILD_TYPE CMAKE_CONFIGURATION_TYPES ${vProjConfDesc})
+mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
+# make
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 ## lib
 add_library(${vProjNameLib} INTERFACE)
-set(vMakeDirsLib ${vFdirSrcRoot})
+set(vMakeDirsLib
+    "$<BUILD_INTERFACE:${vFdirSrcRoot}>;"
+    "$<INSTALL_INTERFACE:${vFdirDstHead}>;"
+    ) # vMakeDirsLib
 set(vMakeDefsLib
-    "$<$<CXX_COMPILER_ID:MSVC>:>"
-    "$<$<CXX_COMPILER_ID:GNU,Clang>:>"
-    "d${vProjName}ProjName=\"${vProjName}\""
-    "d${vProjName}ProjVnum=\"${vProjVnum}\""
-    "d${vProjName}ProjDesc=\"${vProjDesc}\""
-    "d${vProjName}ProjConf=\"${oProjConf}\""
-    "d${vProjName}ProjConf${oProjConf}=1"
+    "${vProjNameDef}ProjName=\"${vProjNameOri}\""
+    "dProjName=\"${vProjNameOri}\""
+    "${vProjNameDef}ProjVnum=\"${vProjVnumWhole}\""
+    "dProjVnum=\"${vProjVnumWhole}\""
+    "${vProjNameDef}ProjDesc=\"${vProjDesc}\""
+    "dProjDesc=\"${vProjDesc}\""
+    "${vProjNameDef}ProjConf${oProjConfPick}"
+    "dProjConf${oProjConfPick}"
     ) # vMakeDefsLib
-set(vMakeFeatLib
-    cxx_std_23
-    cxx_constexpr
-    cxx_variadic_templates
-    ) # vMakeFeatLib
-set(vMakeOptsLib
-    -fpermissive
-    -Wno-class-conversion
-    -Wno-error=narrowing -Wno-narrowing
-    ) # vMakeOptsLib
 ### libs
+set(vLibsList "")
+find_package(pLibAsist "1.0.3" REQUIRED)
+target_link_libraries(${vProjNameLib} INTERFACE pLibAsist::lLibAsist)
+list(APPEND vLibsList "pLibAsist")
 ### last
-target_compile_options(${vProjNameLib} INTERFACE ${vMakeOptsLib})
-target_compile_features(${vProjNameLib} INTERFACE ${vMakeFeatLib})
-target_compile_definitions(${vProjNameLib} INTERFACE ${vMakeDefsLib})
 target_include_directories(${vProjNameLib} INTERFACE ${vMakeDirsLib})
-target_precompile_headers(${vProjNameLib} INTERFACE ${vFdirSrcBase}/fHead.hxx)
+target_compile_definitions(${vProjNameLib} INTERFACE ${vMakeDefsLib})
+target_sources(${vProjNameLib}
+    INTERFACE FILE_SET HEADERS
+    BASE_DIRS "${vFdirSrcBase}"
+    FILES "${vFdirSrcBase}/fHead.hxx"
+    "${vFdirSrcBase}/dHolder.dir/fGiver.hxx"
+    "${vFdirSrcBase}/dHolder.dir/fTaker.hxx"
+    "${vFdirSrcBase}/dHolder.dir/fDummy.hxx"
+    "${vFdirSrcBase}/dHolder.dir/fHeapy.hxx"
+    ) # target_sources
 ## exe
-option(oMakeExe "make executable" 1)
+option(oMakeExe "make project executable" 1)
 if(oMakeExe)
     add_executable(${vProjNameExe} ${vFdirSrcBase}/fMain.cxx)
-    set(vMakeDirsExe "")
-    set(vMakeDefsExe "d${vProjName}MakeExe")
-    set(vMakeFeatExe "")
-    set(vMakeOptsExe "")
     # test
-    option(oTestExe "test executable" 1)
+    option(oTestExe "test project executable" 1)
+    set(vMakeDefsExe "d${vProjNameOri}MakeExe")
     if(oTestExe)
+        include(CTest)
         enable_testing()
-        add_test(NAME tHello
+        list(APPEND vMakeDefsExe "${vProjNameDef}TestExe")
+        #
+        set(vTestName "tHello")
+        add_test(NAME ${vTestName}
             COMMAND ${vFdirGen}/${vProjNameExe}
             ) # add_test
         set(vPassRegex "hello test")
         set_tests_properties(tHello PROPERTIES
             PASS_REGULAR_EXPRESSION ${vPassRegex}
             ) # set_tests_properties
-        list(APPEND vMakeDefsExe "d${vProjName}TestExe")
+        #
+        mark_as_advanced(FORCE CMAKE_BUILD_TYPE)
     endif(oTestExe)
     # libs
     target_link_libraries(${vProjNameExe} PRIVATE ${vProjNameLib})
     # last
-    target_compile_options(${vProjNameExe} PRIVATE ${vMakeOptsExe})
-    target_compile_features(${vProjNameExe} PRIVATE ${vMakeFeatExe})
     target_compile_definitions(${vProjNameExe} PRIVATE ${vMakeDefsExe})
-    target_include_directories(${vProjNameExe} PRIVATE ${vMakeDirsExe})
-    target_precompile_headers(${vProjNameExe} PRIVATE ${vFdirSrcBase}/fMain.hxx)
 endif(oMakeExe)
+# pack
+include(CMakePackageConfigHelpers)
+configure_package_config_file(
+    "${vFdirEnvRoot}/dCMake.dir/dPack.dir/fConfig.cmake.in"
+    "${vFdirGenRoot}/${vProjNameDst}-Config.cmake"
+    INSTALL_DESTINATION "${vFdirDstProj}"
+    ) # package Config
+write_basic_package_version_file(
+    "${vFdirGenRoot}/${vProjNameDst}-ConfigVersion.cmake"
+    VERSION ${vProjVnumWhole}
+    COMPATIBILITY SameMajorVersion
+    ) # package ConfigVersion
+install(
+    TARGETS ${vProjNameLib} EXPORT ${vProjNameDst}
+    FILE_SET HEADERS DESTINATION ${vFdirDstHead}/${vProjNameDir}
+    ) # install target with header
+install(EXPORT "${vProjNameDst}"
+    FILE "${vProjNameDst}.cmake"
+    DESTINATION "${vFdirDstProj}"
+    NAMESPACE "${vProjNameDst}::"
+    ) # install Target
+install(FILES
+    "${vFdirGenRoot}/${vProjNameDst}-Config.cmake"
+    "${vFdirGenRoot}/${vProjNameDst}-ConfigVersion.cmake"
+    DESTINATION "${vFdirDstProj}"
+    ) # install ConfigVersion
+export(EXPORT "${vProjNameDst}"
+    FILE "${vFdirGenRoot}/${vProjNameDst}.cmake"
+    NAMESPACE "${vProjNameDst}::"
+    ) # export Target

@@ -1,4 +1,5 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.3...3.8)
+include_guard(GLOBAL)
 # actions
 function(fOptEnum oOptPick vOptList vOptDesc)
     set(${oOptPick} ${${oOptPick}} CACHE STRING ${vOptDesc})
